@@ -15,126 +15,125 @@ from matplotlib.patches import Polygon
 class PandemicGUI:
     def __init__(self, master):
         self.master = master
-        self.master.title("Symulator Pandemii")
+        self.master.title("Pandemic Simulator")
 
-        # Pola do wprowadzania parametrów:
+        # Input fields for parameters:
         # startCont (1,2,3,4)
-        ttk.Label(master, text="Kontynent startowy:").grid(row=0, column=0, padx=5, pady=5)
-        self.continent_names = ["Eurazja (EA)", "Afryka (AF)", "Ameryka (AM)", "Oceania (OC)"]
+        ttk.Label(master, text="Starting Continent:").grid(row=0, column=0, padx=5, pady=5)
+        self.continent_names = ["Eurasia (EA)", "Africa (AF)", "America (AM)", "Oceania (OC)"]
         self.combobox_start = ttk.Combobox(master, values=self.continent_names, state="readonly", width=19)
-        self.combobox_start.set("Eurazja (EA)")  # Domyślna wartość
+        self.combobox_start.set("Eurasia (EA)")  # Default value
         self.combobox_start.grid(row=0, column=1)
 
-        # Mapa nazw kontynentów na liczby
+        # Map of continent names to numbers
         self.continent_map = {
-            "Eurazja (EA)": 1,
-            "Afryka (AF)": 2,
-            "Ameryka (AM)": 3,
+            "Eurasia (EA)": 1,
+            "Africa (AF)": 2,
+            "America (AM)": 3,
             "Oceania (OC)": 4
         }
 
-        # Początkowa liczba chorych (tylko int)
-        ttk.Label(master, text="Początkowa liczba chorych:").grid(row=1, column=0, padx=5, pady=5)
+        # Initial number of infected (integer only)
+        ttk.Label(master, text="Initial number of infected:").grid(row=1, column=0, padx=5, pady=5)
         validate_cmd = (master.register(self.validate_int), '%P')
         self.entry_initial_infected = ttk.Entry(master, validate='key', validatecommand=validate_cmd)
         self.entry_initial_infected.insert(0, "10000")
         self.entry_initial_infected.grid(row=1, column=1)
 
-        # Dni symulacji
-        ttk.Label(master, text="Czas symulacji (dni):").grid(row=2, column=0, padx=5, pady=5)
+        # Simulation duration in days
+        ttk.Label(master, text="Simulation time (days):").grid(row=2, column=0, padx=5, pady=5)
         self.entry_tEnd = ttk.Entry(master)
         self.entry_tEnd.insert(0, "365")
         self.entry_tEnd.grid(row=2, column=1)
 
-        # Beta
-        ttk.Label(master, text="Szybkość infekcji (EA AF AM OC):").grid(row=3, column=0, padx=5, pady=5)
+        # Beta (infection rate)
+        ttk.Label(master, text="Infection rate (EA AF AM OC):").grid(row=3, column=0, padx=5, pady=5)
         self.entry_beta = ttk.Entry(master)
         self.entry_beta.insert(0, "0.25 0.25 0.25 0.25")
         self.entry_beta.grid(row=3, column=1)
 
-        # Gamma
-        ttk.Label(master, text="Szybkość wyzdrowień (EA AF AM OC):").grid(row=4, column=0, padx=5, pady=5)
+        # Gamma (recovery rate)
+        ttk.Label(master, text="Recovery rate (EA AF AM OC):").grid(row=4, column=0, padx=5, pady=5)
         self.entry_gamma = ttk.Entry(master)
         self.entry_gamma.insert(0, "0.05 0.05 0.05 0.05")
         self.entry_gamma.grid(row=4, column=1)
 
-        # Mu
-        ttk.Label(master, text="Śmiertelność (EA AF AM OC):").grid(row=5, column=0, padx=5, pady=5)
+        # Mu (mortality rate)
+        ttk.Label(master, text="Mortality rate (EA AF AM OC):").grid(row=5, column=0, padx=5, pady=5)
         self.entry_mu = ttk.Entry(master)
         self.entry_mu.insert(0, "0.01 0.01 0.01 0.01")
         self.entry_mu.grid(row=5, column=1)
 
-        # Szybkość narodzin
-        ttk.Label(master, text="Szybkość narodzin (EA AF AM OC):").grid(row=6, column=0, padx=5, pady=5)
+        # Birth rate
+        ttk.Label(master, text="Birth rate (EA AF AM OC):").grid(row=6, column=0, padx=5, pady=5)
         self.entry_birth = ttk.Entry(master)
         self.entry_birth.insert(0, "0.0001 0.0001 0.0001 0.0001")
         self.entry_birth.grid(row=6, column=1)
 
-        # Śmiertelność ogólna (nie-pandemiczna)
-        ttk.Label(master, text="Ogólna śmiertelność (EA AF AM OC):").grid(row=7, column=0, padx=5, pady=5)
+        # General mortality (non-pandemic)
+        ttk.Label(master, text="General mortality (EA AF AM OC):").grid(row=7, column=0, padx=5, pady=5)
         self.entry_other_death = ttk.Entry(master)
         self.entry_other_death.insert(0, "0.0001 0.0001 0.0001 0.0001")
         self.entry_other_death.grid(row=7, column=1)
 
-        # Przycisk startu symulacji
-        self.run_button = ttk.Button(master, text="Uruchom symulację", command=self.run_simulation)
+        # Run simulation button
+        self.run_button = ttk.Button(master, text="Run Simulation", command=self.run_simulation)
         self.run_button.grid(row=8, column=0, columnspan=2, pady=10)
 
-        # Silnik MATLAB - startowany przy pierwszym użyciu
+        # MATLAB engine - start on first use
         self.eng = None
 
-        # Przygotowujemy "geometrie" kontynentów (4 kategorie)
+        # Prepare continent geometries (4 categories)
         self.continent_geoms = self.load_continent_polygons()
-        # Nazwy w takiej kolejności jak w skrypcie symulacja_4kont (kolumny)
-        self.continent_keys = ["Eurazja", "Afryka", "Ameryka", "Oceania"]
+        # Names in the order as in simulation_4kont script (columns)
+        self.continent_keys = ["Eurasia", "Africa", "America", "Oceania"]
 
 
-
-    # Walidacja danych wprowadzonych przez użytkownika:
+    # Validation of user input data:
     def validate_int(self, new_value):
-        return new_value.isdigit()  # True jeśli same cyfry lub puste
+        return new_value.isdigit()  # True if digits only or empty
     
     def validate_inputs(self):
-        # 1) Liczba chorych > 0
+        # 1) Number of infected > 0
         try:
             infected_val = int(self.entry_initial_infected.get())
             if infected_val < 0:
-                raise ValueError("Ujemna liczba chorych")
+                raise ValueError("Negative number of infected")
         except ValueError:
-            messagebox.showerror("Błąd danych", "Początkowa liczba chorych musi być nieujemną liczbą całkowitą.")
+            messagebox.showerror("Data error", "Initial number of infected must be a non-negative integer.")
             return False
 
-        # 2) Ilość symulowanych dni > 0
+        # 2) Simulation days > 0
         try:
             t_end_val = float(self.entry_tEnd.get())
             if t_end_val <= 0:
-                raise ValueError("Czas symulacji <= 0")
+                raise ValueError("Simulation time <= 0")
         except ValueError:
-            messagebox.showerror("Błąd danych", "Czas symulacji musi być liczbą dodatnią.")
+            messagebox.showerror("Data error", "Simulation time must be a positive number.")
             return False
 
-        # Sprawdzamy wszystkie współczynniki (muszą po 4 floaty z przedziału [0..1])
+        # Check all coefficients (must be exactly 4 floats in [0..1])
         if not self.validate_four_floats(self.entry_beta.get()):
-            messagebox.showerror("Błąd danych", "Szybkość infekcji musi zawierać dokładnie 4 wartości typu float z przedziału [0..1].")
+            messagebox.showerror("Data error", "Infection rate must contain exactly 4 float values between [0..1].")
             return False
 
         if not self.validate_four_floats(self.entry_gamma.get()):
-            messagebox.showerror("Błąd danych", "Szybkość wyzdrowień musi zawierać dokładnie 4 wartości typu float z przedziału [0..1].")
+            messagebox.showerror("Data error", "Recovery rate must contain exactly 4 float values between [0..1].")
             return False
 
         if not self.validate_four_floats(self.entry_mu.get()):
-            messagebox.showerror("Błąd danych", "Śmiertelność (pandemiczna) musi zawierać dokładnie 4 wartości typu float z przedziału [0..1].")
+            messagebox.showerror("Data error", "Mortality rate (pandemic) must contain exactly 4 float values between [0..1].")
             return False
         
         if not self.validate_four_floats(self.entry_birth.get()):
-            messagebox.showerror("Błąd danych", "Szybkość narodzin musi zawierać dokładnie 4 wartości typu float z przedziału [0..1].")
+            messagebox.showerror("Data error", "Birth rate must contain exactly 4 float values between [0..1].")
             return False
 
         if not self.validate_four_floats(self.entry_other_death.get()):
-            messagebox.showerror("Błąd danych", "Ogólna śmiertelność (inne zgony) musi zawierać dokładnie 4 wartości typu float z przedziału [0..1].")
+            messagebox.showerror("Data error", "General mortality (other deaths) must contain exactly 4 float values between [0..1].")
             return False
         
-        return True # gdy wszystko OK
+        return True # all OK
 
     def validate_four_floats(self, text_value):
         parts = text_value.split()
@@ -150,30 +149,29 @@ class PandemicGUI:
         return True
 
 
-
-    # Ładowanie kształtów świata z Natural Earth i podział na 4 kontynenty
+    # Load world shapes from Natural Earth and split into 4 continents
     def load_continent_polygons(self):
         shpfilename = shpreader.natural_earth(resolution='110m', category='cultural', name='admin_0_countries')
 
         continents = {
-            "Eurazja": [],
-            "Afryka": [],
-            "Ameryka": [],
+            "Eurasia": [],
+            "Africa": [],
+            "America": [],
             "Oceania": []
         }
 
         def classify_continent(cont_str):
             if cont_str in ["Europe", "Asia"]:
-                return "Eurazja"
+                return "Eurasia"
             elif cont_str == "Africa":
-                return "Afryka"
+                return "Africa"
             elif cont_str in ["North America", "South America"]:
-                return "Ameryka"
+                return "America"
             elif cont_str == "Oceania":
                 return "Oceania"
             return None
 
-        # Mapujemy kontynenty krajów wedle naszego podziału na 4 kontynenty
+        # Map country continents to our 4-continent classification
         for record in shpreader.Reader(shpfilename).records():
             c = record.attributes['CONTINENT']
             group = classify_continent(c)
@@ -182,7 +180,7 @@ class PandemicGUI:
 
         for k in continents:
             if len(continents[k]) > 0:
-                # Sklejamy poszczególne figury reprezentujące kraje w jeden kontynent
+                # Merge individual country shapes into one continent geometry
                 continents[k] = unary_union(continents[k])
             else:
                 continents[k] = None
@@ -190,18 +188,17 @@ class PandemicGUI:
         return continents
 
 
-
-    # Funkcja wywoływana po kliknięciu "Uruchom symulację"
+    # Function called after clicking "Run Simulation"
     def run_simulation(self):
-        # Najpierw sprawdzamy poprawność danych
+        # First validate input data
         if not self.validate_inputs():
             return
         
-        # Start MATLAB Engine (jeśli nie wystartowany)
+        # Start MATLAB Engine (if not started)
         if not self.eng:
             self.eng = matlab.engine.start_matlab()
 
-        # Czytamy parametry wprowadzone przez użytkownika
+        # Read parameters entered by user
         startCont = int(self.continent_map[self.combobox_start.get()])
         tEnd = float(self.entry_tEnd.get())
 
@@ -213,7 +210,7 @@ class PandemicGUI:
         
         initial_infected = int(self.entry_initial_infected.get())
 
-        # Budujemy strukturę param w formacie zgodnym z MATLAB
+        # Build param struct compatible with MATLAB
         param = {}
         param['startCont'] = float(startCont)
         param['tEnd'] = float(tEnd)
@@ -224,21 +221,21 @@ class PandemicGUI:
         param['otherDeath'] = matlab.double(other_death_list)
         param['userInf'] = float(initial_infected)
 
-        # Wywołujemy symulacja_4kont.m
+        # Call symulacja_4kont.m
         t, S, I, R, D = self.eng.symulacja_4kont(param, nargout = 5)
 
-        # Konwertujemy wyniki z MATLAB do numpy
+        # Convert MATLAB results to numpy
         t_py = np.array(t)
         S_py = np.array(S)
         I_py = np.array(I)
         R_py = np.array(R)
         D_py = np.array(D)
 
-        # Animacja mapy
+        # Animate map
         self.show_map_animation_cartopy(t_py, S_py, I_py, R_py, D_py)
 
 
-    # Animacja cartopy
+    # Cartopy animation
     def show_map_animation_cartopy(self, t_py, S_py, I_py, R_py, D_py):
         import cartopy.feature as cfeature
 
@@ -247,9 +244,9 @@ class PandemicGUI:
         ax_map.set_global()
         ax_map.coastlines('110m')
         ax_map.add_feature(cfeature.BORDERS, linewidth=0.5)
-        ax_map.set_title("Symulacja pandemii")
+        ax_map.set_title("Pandemic Simulation")
 
-        # Mapa kontynentów -> patches
+        # Continent map -> patches
         patches = {}
         for ckey in self.continent_keys:
             geom = self.continent_geoms[ckey]
@@ -276,11 +273,11 @@ class PandemicGUI:
 
             patches[ckey] = poly_list
 
-        # Dodajemy oś tekstową na dole figury aby wyświetlać informacje
+        # Add a text axis below figure to display info
         ax_text = fig.add_axes([0.05, 0.0, 0.9, 0.15])
         ax_text.axis('off')
         
-        # Przygotowujemy teksty dla każdego z 4 kontynentów (4 linie)
+        # Prepare text lines for each of the 4 continents (4 lines)
         text_lines = []
         for i, ckey in enumerate(self.continent_keys):
             y_pos = 0.8 - 0.25*i
@@ -298,7 +295,7 @@ class PandemicGUI:
 
         num_steps = len(t_py)
 
-        # Pętla animacji
+        # Animation loop
         for step in range(num_steps):
             S_now = S_py[step,:]
             I_now = I_py[step,:]
@@ -324,7 +321,7 @@ class PandemicGUI:
                 dead_num = D_now[i]
                 recov_num = R_now[i]
                 text_lines[i].set_text(
-                    f"{ckey}: {percent_inf:.2f}% zarażonych,   Zmarli={dead_num:,.0f},   Wyleczeni={recov_num:,.0f}"
+                    f"{ckey}: {percent_inf:.2f}% infected,   Dead={dead_num:,.0f},   Recovered={recov_num:,.0f}"
                 )
 
             plt.pause(0.25)
@@ -343,11 +340,11 @@ class PandemicGUI:
         total_recovered = np.sum(R_end)
 
         summary_msg = (
-            f"Łączna liczba osób zmarłych: {total_dead:,.0f}\n"
-            f"Łączna liczba osób wyleczonych: {total_recovered:,.0f}\n"
-            f"Łączna liczba osób aktualnie zainfekowanych: {total_infected:,.0f}"
+            f"Total number of deaths: {total_dead:,.0f}\n"
+            f"Total number of recovered: {total_recovered:,.0f}\n"
+            f"Total number of currently infected: {total_infected:,.0f}"
         )
-        messagebox.showinfo("Wyniki końcowe symulacji", summary_msg)
+        messagebox.showinfo("Final simulation results", summary_msg)
 
 
 # Main
