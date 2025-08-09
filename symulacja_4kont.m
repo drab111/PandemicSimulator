@@ -20,7 +20,6 @@ function [t_out, S, I, R, D] = symulacja_4kont(userParam)
 %               w kolumnach kontynenty: 
 %               1 - Eurazja, 2 - Afryka, 3 - Ameryka, 4 - Oceania
 
-
     % Ustawiamy parametry domyślne
     % Przybliżone populacje:
     % 1 - Eurazja, 2 - Afryka, 3 - Ameryka, 4 - Oceania
@@ -160,7 +159,6 @@ function [t_out, S, I, R, D] = symulacja_4kont(userParam)
     title('Zgony (D)');
 
 end
-
 
 
 % POMOCNICZA FUNKCJA: Równania ODE dla 4 kontynentów

@@ -350,7 +350,6 @@ class PandemicGUI:
         messagebox.showinfo("Wyniki końcowe symulacji", summary_msg)
 
 
-
 # Main
 if __name__ == "__main__":
     root = tk.Tk()
